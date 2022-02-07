@@ -55,21 +55,29 @@ _ : (⟨⟩ I I) *′ (⟨⟩) ≡ ⟨⟩ O O --you need the right number of zer
 _ = refl
 
 
-lemma-⟨⟩ : ∀ (b : Bin) → b ≡ b +′ ⟨⟩
-lemma-⟨⟩ ⟨⟩ = refl
-lemma-⟨⟩ (b O) = refl
-lemma-⟨⟩ (b I) = refl
+postulate
+  ⟨⟩-identity : ⟨⟩ O ≡ ⟨⟩ --I found it useful, but is it bad practice?
 
++-identityᵣ : ∀ (b : Bin) → b +′ ⟨⟩ ≡ b
++-identityᵣ ⟨⟩ = refl
++-identityᵣ (b O) = refl
++-identityᵣ (b I) = refl
 
+*-identity : ∀ (b : Bin) → b *′ ⟨⟩ ≡ ⟨⟩
+*-identity ⟨⟩ = refl
+*-identity (b O) rewrite *-identity b = ⟨⟩-identity
+*-identity (b I) rewrite *-identity b = ⟨⟩-identity
+
+*-distr : ∀ (m n p : Bin) → (m +′ n) *′ p ≡ (m *′ p) +′ (n *′ p)
+*-distr ⟨⟩ n p = refl
+*-distr (m O) n p = {!!}
+*-distr (m I) n p = {!!}
 
 *-assoc : ∀ (m n p : Bin) → (m *′ n) *′ p ≡ m *′ (n *′ p)
 *-assoc ⟨⟩ n p = refl
 *-assoc (m O) n p = cong _O (*-assoc m n p)
-*-assoc (m I) ⟨⟩ ⟨⟩ = {!!}
-*-assoc (m I) ⟨⟩ (p O) = {!!}
-*-assoc (m I) ⟨⟩ (p I) = {!!}
-*-assoc (m I) (n O) p = {!!}
-*-assoc (m I) (n I) p = {!!}
+*-assoc (m I) n p rewrite *-distr n ((m *′ n) O) p | *-assoc m n p = refl
+
 
 inc-assoc : ∀ (m n : Bin) → (inc m) +′ n ≡ inc (m +′ n)
 inc-assoc ⟨⟩ ⟨⟩ = refl
@@ -86,10 +94,10 @@ inc-assocᵣ : ∀ (m n : Bin) → m +′ (inc n) ≡ inc (m +′ n)
 inc-assocᵣ ⟨⟩ ⟨⟩ = refl
 inc-assocᵣ ⟨⟩ (n O) = refl
 inc-assocᵣ ⟨⟩ (n I) = refl
-inc-assocᵣ (m O) ⟨⟩ = cong _I (sym (lemma-⟨⟩ m))
+inc-assocᵣ (m O) ⟨⟩ = cong _I (+-identityᵣ m)
 inc-assocᵣ (m O) (n O) = refl
 inc-assocᵣ (m O) (n I) = cong _O (inc-assocᵣ m n)
-inc-assocᵣ (m I) ⟨⟩ = cong _O (cong inc (sym (lemma-⟨⟩ m)))
+inc-assocᵣ (m I) ⟨⟩ = cong _O (cong inc (+-identityᵣ m))
 inc-assocᵣ (m I) (n O) = refl
 inc-assocᵣ (m I) (n I) = cong _I (inc-assocᵣ m n)
 
@@ -133,8 +141,22 @@ inc-assocᵣ (m I) (n I) = cong _I (inc-assocᵣ m n)
   ≡⟨ cong _I (sym (inc-assocᵣ m (n +′ p))) ⟩
     ((m +′ inc (n +′ p)) I)
   ∎
-    
 
+
++-comm : ∀ (m n : Bin) → m +′ n ≡ n +′ m
++-comm ⟨⟩ n = sym (+-identityᵣ n)
++-comm (m O) ⟨⟩ = refl
++-comm (m O) (n O) = cong _O (+-comm m n)
++-comm (m O) (n I) = cong _I (+-comm m n)
++-comm (m I) ⟨⟩ = refl
++-comm (m I) (n O) = cong _I (+-comm m n)
++-comm (m I) (n I) = cong _O (cong inc (+-comm m n))
+
+
+*-comm : ∀ (m n : Bin) → m *′ n ≡ n *′ m
+*-comm ⟨⟩ n = sym (*-identity n)
+*-comm (m O) n = {!!}
+*-comm (m I) n = {!!}
 
 data _≤_ : Bin → Bin → Set where
   z≤n : ∀ {n : Bin} → ⟨⟩ ≤ n
